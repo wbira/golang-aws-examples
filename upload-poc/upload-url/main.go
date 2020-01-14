@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"time"
 
@@ -35,7 +34,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	svc := s3.New(sess)
-	req, out := svc.PutObjectRequest(input)
+	req, _ := svc.PutObjectRequest(input)
 
 	var url string
 	if url, err = req.Presign(10 * time.Minute); err != nil {

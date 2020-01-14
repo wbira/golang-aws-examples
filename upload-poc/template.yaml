@@ -34,8 +34,8 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: hello-world/
-      Handler: hello-world
+      CodeUri: upload-url/
+      Handler: upload-url
       Events:
         Api:
           Type: Api
