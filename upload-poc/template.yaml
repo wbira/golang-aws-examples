@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  upload-poc
+
+  Sample SAM Template for upload-poc
+
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: go1.x
+    Tracing: Active
+  Api:
+    Cors:
+      AllowMethods: "'*'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: wb-super-test-bucket2
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods:
+              - GET
+              - PUT
+            AllowedOrigins:
+              - '*'
+            AllowedHeaders:
+              - '*'
+
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hello-world/
+      Handler: hello-world
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Method: GET
+            Path: /hello
+      Environment:
+        Variables:
+          BUCKET: !Ref MyBucket
+      Role: !GetAtt SignedUrlFunctionRole.Arn
+      # Policies:
+      #   - S3FullAccessPolicy:
+      #       BucketName: !Ref MyBucket
+
+  SignedUrlFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: '/'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowLambdaServiceToAssumeRole
+            Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+
+  SignedUrlFunctionPolicy:
+    Type: AWS::IAM::Policy
+    DependsOn: SignedUrlFunctionRole
+    Properties:
+      PolicyName: LambdaPetStoreSignedUrlFunctionPolicy
+      Roles:
+        - !Ref SignedUrlFunctionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Resource:
+              - !Sub arn:aws:s3:::${MyBucket}/*
+            Action:
+              - 's3:Put*'
+Outputs:
+  HelloWorldAPI:
+    Description: 'API Gateway endpoint URL for Prod environment for First Function'
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/hello/'
