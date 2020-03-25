@@ -13,5 +13,4 @@ deploy: build
 	sam deploy \
 	--template-file ./template.yaml \
 	--stack-name cloudwatchDashboard \
-	--guided \
 	--capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
