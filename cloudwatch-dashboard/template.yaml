@@ -24,49 +24,6 @@ Resources:
             Path: /hello
             Method: GET
 
-  MetricsDashboard:
-    Type: AWS::CloudWatch::Dashboard
-    Properties:
-      DashboardName: 'test-dashboard'
-      DashboardBody: !Sub |
-      {
-          "widgets": [
-              {
-                  "type": "log",
-                  "x": 0,
-                  "y": 0,
-                  "width": 9,
-                  "height": 6,
-                  "properties": {
-                      "query": "SOURCE '/aws/lambda/${HelloWorldFunction}' | fields @timestamp, @message\n| sort @timestamp desc\n| filter @message like /Error/",
-                      "region": "eu-west-1",
-                      "stacked": false,
-                      "view": "table",
-                      "title": "Logs with errors"
-                  }
-              },
-              {
-                  "type": "metric",
-                  "x": 9,
-                  "y": 0,
-                  "width": 6,
-                  "height": 6,
-                  "properties": {
-                      "metrics": [
-                          [ { "expression": "100 - 100 * errors/invocations", "label": "Success Rate %", "id": "successRate", "yAxis": "right", "color": "#2ca02c" } ],
-                          [ "AWS/Lambda", "Invocations", "FunctionName", "${HelloWorldFunction}", { "id": "invocations", "visible": false } ],
-                          [ ".", "Errors", ".", ".", { "color": "#d62728", "id": "errors" } ]
-                      ],
-                      "view": "timeSeries",
-                      "stacked": false,
-                      "region": "eu-west-1",
-                      "stat": "Average",
-                      "period": 300,
-                      "title": "Success Rate vs Errors"
-                  }
-              }
-          ]
-      }
 Outputs:
   HelloWorldAPI:
     Description: 'API Gateway endpoint URL for Prod environment for First Function'

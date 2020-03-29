@@ -11,17 +11,16 @@ import (
 
 // handlers returns errors to generate logs on dashboard
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Printf("Info: recived request %v", request)
-
 	if value, ok := request.QueryStringParameters["error"]; ok {
 		if value == "notfound" {
-			log.Print("Error: not found")
+			log.Println("Error: not found")
 			return createApiGatewayResponse("Not found\n", http.StatusNotFound)
 		}
-		log.Print("Error: internal server error")
+		log.Println("Error: internal server error")
 		return createApiGatewayResponse("Error\n", http.StatusInternalServerError)
 	}
 
+	log.Println("operation successful")
 	return createApiGatewayResponse("Success\n", http.StatusOK)
 }
 
