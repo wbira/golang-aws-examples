@@ -24,6 +24,79 @@ Resources:
             Path: /hello
             Method: GET
 
+  MetricsDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: 'SimpleDashboard'
+      DashboardBody: !Sub |
+        {
+            "widgets": [
+                {
+                    "type": "metric",
+                    "x": 0,
+                    "y": 0,
+                    "width": 8,
+                    "height": 6,
+                    "properties": {
+                        "metrics": [
+                            [ "AWS/Lambda", "Invocations", "FunctionName", "${HelloWorldFunction}", "Resource", "${HelloWorldFunction}", { "stat": "Sum" } ]
+                        ],
+                        "region": "eu-west-1",
+                        "title": "Invocations"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 8,
+                    "y": 0,
+                    "width": 8,
+                    "height": 6,
+                    "properties": {
+                        "metrics": [
+                            [ "AWS/Lambda", "Duration", "FunctionName", "${HelloWorldFunction}", "Resource", "${HelloWorldFunction}", { "stat": "Minimum" } ],
+                            [ "...", { "stat": "Average" } ],
+                            [ "...", { "stat": "Maximum" } ]
+                        ],
+                        "region": "eu-west-1"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 16,
+                    "y": 0,
+                    "width": 8,
+                    "height": 6,
+                    "properties": {
+                        "metrics": [
+                            [ "AWS/Lambda", "Errors", "FunctionName", "${HelloWorldFunction}", "Resource", "${HelloWorldFunction}", { "id": "errors", "stat": "Sum", "color": "#d13212" } ],
+                            [ ".", "Invocations", ".", ".", ".", ".", { "id": "invocations", "stat": "Sum", "visible": false } ],
+                            [ { "expression": "100 - 100 * errors / MAX([errors, invocations])", "label": "Success rate (%)", "id": "availability", "yAxis": "right" } ]
+                        ],
+                        "region": "eu-west-1",
+                        "title": "Error count and success rate (%)",
+                        "yAxis": {
+                            "right": {
+                                "max": 100
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "log",
+                    "x": 0,
+                    "y": 6,
+                    "width": 24,
+                    "height": 6,
+                    "properties": {
+                        "query": "SOURCE '/aws/lambda/${HelloWorldFunction}' | fields @timestamp, @message\n| sort @timestamp desc\n| filter @message like /(?i)error/",
+                        "region": "eu-west-1",
+                        "stacked": false,
+                        "view": "table"
+                    }
+                }
+            ]
+        }
+
 Outputs:
   HelloWorldAPI:
     Description: 'API Gateway endpoint URL for Prod environment for First Function'
