@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: VPC for Fargate demo
+
+Resources:
+  Task:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: notes
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !ImportValue TaskExecutionRole
+      ContainerDefinitions:
+        - Name: noteapi
+          Image: '147021510662.dkr.ecr.eu-west-1.amazonaws.com/books-api'
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: 'notes'
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: 'note-api'
+
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: ListenerRule
+    Properties:
+      TaskDefinition: !Ref Task
+      Cluster: !ImportValue 'ECSCluster'
+      LaunchType: FARGATE
+      DesiredCount: 2
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 70
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !ImportValue SubnetA
+            - !ImportValue SubnetB
+          SecurityGroups:
+            - !ImportValue ContainerSecurityGroup
+      LoadBalancers:
+        - ContainerName: noteapi
+          ContainerPort: 8080
+          TargetGroupArn: !Ref TargetGroup
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: note-api-tg
+      VpcId: !ImportValue VPC
+      Port: 80
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 10
+      TargetType: ip
+
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !ImportValue Listener
+      Priority: 2
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /books*
+      Actions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+
+Outputs:
+  ApiEndpoint:
+    Description: Note API Endpoint
+    Value: !Join ['', ['http://', !ImportValue Domain, '/books']]
+    Export:
+      Name: 'BooksApiEndpoint'
