@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: VPC for Fargate demo
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: 'notestore'
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      SecurityGroups:
+        - !Ref LoadBalancerSG
+      Subnets:
+        - !ImportValue 'SubnetA'
+        - !ImportValue 'SubnetB'
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroupArn
+
+  LoadBalancerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for loadbalancer of fargate tasks
+      VpcId: !ImportValue 'VPC'
+      SecurityGroupIngress:
+        - CidrIp: '0.0.0.0/0'
+          IpProtocol: -1
+
+  DefaultTargetGroupArn:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: default
+      VpcId: !ImportValue 'VPC'
+      Protocol: HTTP
+      Port: 80
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 1
+      LogGroupName: 'notes'
+
+  ContainerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for loadbalancer of fargate tasks
+      VpcId: !ImportValue 'VPC'
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref LoadBalancerSG
+          IpProtocol: -1
+
+Outputs:
+  Cluster:
+    Description: ECS cluster
+    Value: !Ref Cluster
+    Export:
+      Name: 'ECSCluster'
+
+  Listener:
+    Description: Load balancer listerner
+    Value: !Ref LoadBalancerListener
+    Export:
+      Name: 'Listener'
+
+  ContainerSecurityGroup:
+    Description: Container security group
+    Value: !Ref ContainerSG
+    Export:
+      Name: 'ContainerSecurityGroup'
+
+  LoadBalancerDNS:
+    Description: Load Balancer DNS name
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: 'Domain'
