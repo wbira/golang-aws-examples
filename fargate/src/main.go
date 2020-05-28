@@ -2,12 +2,13 @@ package main
 
 import (
 	"net/http"
-	"noter/src/internal/handlers"
+	"noter/src/internal/api"
+	"noter/src/internal/storage/dynamodb"
 )
 
 func main() {
-	api := handlers.API()
-	http.Handle("/", api)
+	db := &dynamodb.Adapter{}
+	http.Handle("/", api.GetRouter(db))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic("Internal server error")

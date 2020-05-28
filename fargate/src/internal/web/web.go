@@ -6,8 +6,10 @@ import (
 	"net/http"
 )
 
+type HttpHandler func(w http.ResponseWriter, r *http.Request)
+
 func Respond(w http.ResponseWriter, r *http.Request, data interface{}, status int) {
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization,Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 
 	if data != nil {
 		if err := json.NewEncoder(w).Encode(data); err != nil {
