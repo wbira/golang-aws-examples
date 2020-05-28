@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"noter/src/internal/notes"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
@@ -41,7 +42,14 @@ func (a *Adapter) PersistNote(ctx context.Context, note *notes.Note) (*notes.Not
 }
 
 func (a *Adapter) GetSingleNote(ctx context.Context, noteId string) (*notes.Note, error) {
-	input := dynamodb.QueryInput{}
+	input := dynamodb.QueryInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":nodeId": {S: aws.String(noteId)},
+		},
+		KeyConditionExpression: aws.String("noteId = :nodeId"),
+
+		TableName: aws.String(a.tableName),
+	}
 
 	result, err := a.client.QueryWithContext(ctx, &input)
 	if err != nil {
