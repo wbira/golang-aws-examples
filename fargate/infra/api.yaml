@@ -14,7 +14,7 @@ Resources:
       ExecutionRoleArn: !ImportValue TaskExecutionRole
       ContainerDefinitions:
         - Name: noteapi
-          Image: '147021510662.dkr.ecr.eu-west-1.amazonaws.com/books-api'
+          Image: '147021510662.dkr.ecr.eu-west-1.amazonaws.com/notes-api'
           PortMappings:
             - ContainerPort: 8080
               Protocol: tcp
@@ -73,7 +73,7 @@ Resources:
       Conditions:
         - Field: path-pattern
           Values:
-            - /books*
+            - /notes*
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
@@ -81,6 +81,6 @@ Resources:
 Outputs:
   ApiEndpoint:
     Description: Note API Endpoint
-    Value: !Join ['', ['http://', !ImportValue Domain, '/books']]
+    Value: !Join ['', ['http://', !ImportValue Domain, '/notes']]
     Export:
-      Name: 'BooksApiEndpoint'
+      Name: 'NotesApiEndpoint'
