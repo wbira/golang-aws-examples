@@ -11,12 +11,12 @@ import (
 )
 
 type notesGetter interface {
-	GetSingleNote(ctx context.Context, noteId string) (notes.Note, error)
-	ListNotes(ctx context.Context) ([]notes.Note, error)
+	GetSingleNote(ctx context.Context, noteId string) (*notes.Note, error)
+	ListNotes(ctx context.Context) ([]*notes.Note, error)
 }
 
 type notePersiter interface {
-	PersistNote(ctx context.Context, note notes.Note) (notes.Note, error)
+	PersistNote(ctx context.Context, note *notes.Note) (*notes.Note, error)
 }
 
 func HandleCreateNote(persiter notePersiter) web.HttpHandler {
@@ -28,7 +28,7 @@ func HandleCreateNote(persiter notePersiter) web.HttpHandler {
 			return
 		}
 
-		persistedNote, err := persiter.PersistNote(r.Context(), note)
+		persistedNote, err := persiter.PersistNote(r.Context(), &note)
 		if err != nil {
 			handleError(w, r, err)
 			return
