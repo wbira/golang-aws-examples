@@ -14,16 +14,16 @@ Resources:
       ExecutionRoleArn: !ImportValue TaskExecutionRole
       ContainerDefinitions:
         - Name: noteapi
-          Image: '147021510662.dkr.ecr.eu-west-1.amazonaws.com/notes-api'
+          Image: '147021510662.dkr.ecr.eu-west-1.amazonaws.com/noter'
           PortMappings:
             - ContainerPort: 8080
               Protocol: tcp
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-group: 'notes'
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: 'note-api'
+              awslogs-group: 'noter'
+              awslogs-region: eu-west-1
+              awslogs-stream-prefix: 'api'
 
   Service:
     Type: AWS::ECS::Service
@@ -52,14 +52,14 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: note-api-tg
+      Name: noter-tg
       VpcId: !ImportValue VPC
       Port: 80
       Protocol: HTTP
       Matcher:
         HttpCode: 200-299
       HealthCheckIntervalSeconds: 10
-      HealthCheckPath: /
+      HealthCheckPath: /healthy
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 10
@@ -77,6 +77,18 @@ Resources:
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
+
+  NotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: noteId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: noteId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TableName: 'Noter'
 
 Outputs:
   ApiEndpoint:

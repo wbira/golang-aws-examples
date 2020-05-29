@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: This template wires together all nested stacks.
+
+Resources:
+  Api:
+    Type: 'AWS::Serverless::Application'
+    Properties:
+      Location: 'api.yaml'
+    DependsOn: Cluster
+  Vpc:
+    Type: 'AWS::Serverless::Application'
+    Properties:
+      Location: 'vpc.yaml'
+  Cluster:
+    Type: 'AWS::Serverless::Application'
+    Properties:
+      Location: 'cluster.yaml'
+    DependsOn: Iam
+  Iam:
+    Type: 'AWS::Serverless::Application'
+    Properties:
+      Location: 'iam.yaml'
+    DependsOn: Vpc

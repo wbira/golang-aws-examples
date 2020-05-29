@@ -27,8 +27,9 @@ func HandleCreateNote(persiter notePersiter) web.HttpHandler {
 			handleError(w, r, werr)
 			return
 		}
-
+		fmt.Printf("note %v", note)
 		persistedNote, err := persiter.PersistNote(r.Context(), &note)
+		fmt.Printf("persisted note %v", note)
 		if err != nil {
 			handleError(w, r, err)
 			return
@@ -41,27 +42,30 @@ func HandleCreateNote(persiter notePersiter) web.HttpHandler {
 func HandleGetSingleNote(getter notesGetter) web.HttpHandler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-
+		fmt.Printf("request %v\n", r)
 		noteId, ok := vars["noteId"]
 		if !ok {
 			werr := fmt.Errorf("note id not found")
 			handleError(w, r, werr)
 			return
 		}
+		fmt.Printf("noteId %v\n", noteId)
 
-		notes, err := getter.GetSingleNote(r.Context(), noteId)
+		note, err := getter.GetSingleNote(r.Context(), noteId)
+		fmt.Printf("notes %v\n", note)
 		if err != nil {
 			handleError(w, r, err)
 			return
 		}
 
-		web.Respond(w, r, notes, http.StatusOK)
+		web.Respond(w, r, note, http.StatusOK)
 	}
 }
 
 func HandleListingNotes(getter notesGetter) web.HttpHandler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		notes, err := getter.ListNotes(r.Context())
+		fmt.Printf("notes %v\n", notes)
 		if err != nil {
 			handleError(w, r, err)
 			return

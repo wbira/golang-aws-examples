@@ -26,6 +26,11 @@ Resources:
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogsEvents'
                 Resource: '*'
+              - Effect: 'Allow'
+                Action:
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:Query'
+                Resource: '*'
 
 Outputs:
   TaskRole:
